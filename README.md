@@ -39,7 +39,7 @@ The lab enviroment can be created with CarND Term1 Starter Kit. Click [here](htt
 ## Rubric Points
 Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/571/view) individually and describe how I addressed each point in my implementation.
 
-#### 3. Submission code is usable and readable
+#### Submission code is usable and readable
 
 The Advanced_Lane_Lines.ipynb [Advanced_Lane_Lines.ipynb](./Advanced_Lane_Lines.ipynb) file contains the image processing pipeline.
 
@@ -61,6 +61,117 @@ left_bottom = [1/8*image.shape[1],image.shape[0]]
  img=region_of_interest(image,vertices)
  ```
 
-[![Before ROI](https://raw.githubusercontent.com/eshnil2000/CarND-Behavioral-Cloning/master/model.png)
+[![Before ROI](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/before_ROI.png)
+
+[![After ROI](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/ROI.png)
+
+
+### 3. Change color space to HLS, filter image for lane lines using Sobel
+Next, I changed color space to better detect lane lines, and used Sobel filtering. 
+
+```
+img = cv2.GaussianBlur(img, (kernel_size, kernel_size), 0)
+ #img=image
+ # Convert to HLS color space and separate the  channel
+ hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS).astype(np.float)
+    
+l_channel = hls[:,:,1]
+s_channel = hls[:,:,2]
+# Sobel x
+sobelx = cv2.Sobel(s_channel, cv2.CV_64F, 1, 0) # Take the derivative in x
+abs_sobelx = np.absolute(sobelx) # Absolute x derivative to accentuate lines away from horizontal
+scaled_sobel = np.uint8(255*abs_sobelx/np.max(abs_sobelx))
+    
+# Threshold x gradient
+sxbinary = np.zeros_like(scaled_sobel)
+sxbinary[(scaled_sobel >= sx_thresh[0]) & (scaled_sobel <= sx_thresh[1])] = 1
+    
+# Threshold color channel
+s_binary = np.zeros_like(s_channel)
+s_binary[(s_channel >= s_thresh[0]) & (s_channel <= s_thresh[1])] = 1
+    
+s_final=np.zeros_like(s_channel)
+s_final[(sxbinary==1) & (s_binary ==1)] = 1
+```
+
+Then I used these points to perform Distortion Correction using the Camera matrix calculated earlier
+```
+result, mtx,dist = cal_undistort(sxbinary, objpoints, imgpoints)
+```
+
+```
+def cal_undistort(img, objpoints, imgpoints):
+    # Use cv2.calibrateCamera() and cv2.undistort()
+    #gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    #ret, corners = cv2.findChessboardCorners(gray, (8,6), None)
+    #img = cv2.drawChessboardCorners(img, (8,6), corners, ret)
+    ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, img.shape[::-1], None, None)
+    dst = cv2.undistort(img, mtx, dist, None, mtx)
+    #undist = np.copy(img)  # Delete this line
+    undist=dst
+    return undist, mtx, dist
+```
+[![Before Distortion Correction](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/original_chess.png)
+
+[![After Distortion Correction](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/undistorted.png)
+
+### 4. Perform Warp transform to get Bird's eye view, perform windowed Polynomial fit
+To get accurate representation of the lane line perspective, i warped the original image, by selecting 4 points on the original image representing roughly the 4 corners of the lane and transforming them so that the lane lines appear parallel to each other in the Bird's eye view
+
+```
+height,width = result.shape[:2]
+
+    # define source and destination points for transform
+    src = np.float32([(750,450),(550,450),
+
+                      (1050,710),
+                      (80,710), 
+                      ])
+    dst = np.float32([(width-450,0),
+                      (450,0),
+                      (width-450,height),
+                      (450,height)])
+
+    result, M, Minv=warp_transform(result,src,dst)
+```
+
+Since the lane lines maybe discontinuous, I used a windowed polynomial fitting algorithm to trace out the complete left and right lane lines. This code was taken from the sample provided by Udacity. The technique involves dividing up the image into vertical windows, computing the histogram to find lane lines in the window, computing the histogram in subsequent windows and then fitting a polynomial smoothed out to fit the windows together.
+```
+result,left_fitx,right_fitx,ploty,left_curveradius,right_curveradius=window_polyfit(result)
+
+```
+
+[![Original image](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/pre_pipeline.png)
+
+[![After Perspective transform, windowed polynomial fit](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/pipeline.png)
+
+In this same step, I calculate the approximate lane curvature radius and the position of the car assuming camera is mounted at center of the car. 
+
+### 5. Shade region between lane lines, warp image using inverse perspective transform
+Now that the lane lines are detected, I filled in the area between the lane lines with the cv2.fillPoly command. Next, i performed an inverse perspective transform to warp the co-ordinates of the fillPoly to that of the original image, and then superimposed this fill on the original image
+```
+# Draw the lane onto the warped blank image
+cv2.fillPoly(color_warp, np.int_([pts]), (0, 255, 0))
+# Warp the blank back to original image space using inverse perspective matrix (Minv)
+newwarp = cv2.warpPerspective(color_warp, Minv, (image.shape[1], image.shape[0])) 
+# Combine the result with the original image
+result = cv2.addWeighted(image, 1, newwarp, 0.3, 0)
+```
+
+[![Original image](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/pre_shade.png)
+
+[![After Shading, inverse perspective transform](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/post_shade.png)
+
+In the same step, i overlayed the curvature and position information onto the image.
+
+Finally, this same pipeline was run on the sample project video, processing each frame at a time, and then compiling an output video using the MoviePy package.
+
+[![Original video](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/project_video.mp4)
+
+[![Processed video](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/white_bu.mp4)
+
+
+
+
 
 
