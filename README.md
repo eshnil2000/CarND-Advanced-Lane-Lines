@@ -63,8 +63,6 @@ left_bottom = [1/8*image.shape[1],image.shape[0]]
 
 ![Before ROI](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/before_ROI.png)
 
-![After ROI](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/ROI.png)
-
 
 ### 3. Change color space to HLS, filter image for lane lines using Sobel
 Next, I changed color space to better detect lane lines, and used Sobel filtering. 
@@ -113,7 +111,6 @@ def cal_undistort(img, objpoints, imgpoints):
 ```
 ![Before Distortion Correction](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/original_chess.png)
 
-![After Distortion Correction](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/undistorted.png)
 
 ### 4. Perform Warp transform to get Bird's eye view, perform windowed Polynomial fit
 To get accurate representation of the lane line perspective, i warped the original image, by selecting 4 points on the original image representing roughly the 4 corners of the lane and transforming them so that the lane lines appear parallel to each other in the Bird's eye view
@@ -143,7 +140,6 @@ result,left_fitx,right_fitx,ploty,left_curveradius,right_curveradius=window_poly
 
 ![Original image](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/pre_pipeline.png)
 
-![After Perspective transform, windowed polynomial fit](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/pipeline.png)
 
 In this same step, I calculate the approximate lane curvature radius and the position of the car assuming camera is mounted at center of the car. 
 
@@ -160,7 +156,6 @@ result = cv2.addWeighted(image, 1, newwarp, 0.3, 0)
 
 ![Original image](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/pre_shade.png)
 
-![After Shading, inverse perspective transform](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/post_shade.png)
 
 In the same step, i overlayed the curvature and position information onto the image.
 
