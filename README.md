@@ -165,6 +165,13 @@ Finally, this same pipeline was run on the sample project video, processing each
 
 ![Processed video](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/white_bu.mp4)
 
+### 6. Discussion Points
+As can be seen in the resultant video, there is some fluctuation in the shaded region processing due to noise moving from frame to frame especially on the right hand side lane. The left hand side lane with the yellow color is reasonably stable In some frames where there is a transition from yellow to white noise specs, the video shaded region seems to fluctuate. This means under different weather conditions/ shadows, this algorithm may have a tough time keeping track. Also, on roads with poorly marked lane lines or no lane lines, the algorithm would do a poor job keeping to the lane lines.
+
+The frame processing was also pretty slow, as an improvement, I could implement a smarter algorithm that searched for lines only in the immediate neighborhood of the previously detected polynomial.
+
+I could also implement some smoothing/averaging between frames which would reduce the fluctuations between frames.
+
 
 
 
