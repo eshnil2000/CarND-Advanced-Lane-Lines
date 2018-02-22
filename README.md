@@ -91,6 +91,9 @@ s_binary[(s_channel >= s_thresh[0]) & (s_channel <= s_thresh[1])] = 1
 s_final=np.zeros_like(s_channel)
 s_final[(sxbinary==1) & (s_binary ==1)] = 1
 ```
+![S-channel](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/HLS.png)
+
+![Sobel binary threshold](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/Sobel_Binary.png)
 
 Then I used these points to perform Distortion Correction using the Camera matrix calculated earlier
 ```
