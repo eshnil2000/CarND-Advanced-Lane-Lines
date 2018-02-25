@@ -18,7 +18,7 @@ I also used Region of Interest & Gaussian Blurring to focus & better detect the 
 # Files & Code Quality
 These are  key files: 
 * [Advanced_Lane_Lines_Updated.ipynb](./Advanced_Lane_Lines_Updated.ipynb) (script used to setup & execute the pipeline)
-* [project_out.mp4](./white.mp4) (a video recording of the lane lines detected along with the shaded region between the lane lines)
+* [final_out.mp4](./final_out.mp4) (a video recording of the lane lines detected along with the shaded region between the lane lines)
 * [README](./README.md) (this readme file has the write up for the project!)
 
 The Project
@@ -41,7 +41,7 @@ Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/5
 
 #### Submission code is usable and readable
 
-The Advanced_Lane_Lines.ipynb [Advanced_Lane_Lines_Updated.ipynb](./Advanced_Lane_Lines.ipynb) file contains the image processing pipeline.
+The Advanced_Lane_Lines.ipynb [Advanced_Lane_Lines_Updated.ipynb](./Advanced_Lane_Lines_Updated.ipynb) file contains the image processing pipeline.
 
 ### 1. Computed the camera matrix and distortion coefficients
 First i used the test chessboard images [calibration](./camera_cal) to find Chessboard corners and saved this data for calibration & distortion correction later.
