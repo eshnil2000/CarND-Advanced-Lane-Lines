@@ -18,7 +18,7 @@ I also used Region of Interest & Gaussian Blurring to focus & better detect the 
 # Files & Code Quality
 These are  key files: 
 * [Advanced_Lane_Lines.ipynb](./model.ipynb) (script used to setup & execute the pipeline)
-* [white.mp4](./white.mp4) (a video recording of the lane lines detected along with the shaded region between the lane lines)
+* [project_out.mp4](./white.mp4) (a video recording of the lane lines detected along with the shaded region between the lane lines)
 * [README](./README.md) (this readme file has the write up for the project!)
 
 The Project
@@ -67,33 +67,58 @@ left_bottom = [1/8*image.shape[1],image.shape[0]]
 ### 3. Change color space to HLS, filter image for lane lines using Sobel
 Next, I changed color space to better detect lane lines, and used Sobel filtering. 
 
+Initially, my right lane curvature was out of whack, curving dramatically to the right at the top of the image, primarily due to lot of noise pick up from the neighboring lanes. I had applied only Sobel filter in X direction.
+```	
+
+	# Sobel x
+    sobelx = cv2.Sobel(s_channel, cv2.CV_64F, 1, 0) # Take the derivative in x
+    abs_sobelx = np.absolute(sobelx) # Absolute x derivative to accentuate lines away from horizontal
+    scaled_sobel = np.uint8(255*abs_sobelx/np.max(abs_sobelx))
+    
+    # Threshold x gradient
+    sxbinary = np.zeros_like(scaled_sobel)
+    sxbinary[(scaled_sobel >= sx_thresh[0]) & (scaled_sobel <= sx_thresh[1])] = 1
+    
+    # Threshold color channel
+    s_binary = np.zeros_like(s_channel)
+    s_binary[(s_channel >= s_thresh[0]) & (s_channel <= s_thresh[1])] = 1
+    
+    s_final=np.zeros_like(s_channel)
+    s_final[(sxbinary==1) & (s_binary ==1)] = 1
 ```
-img = cv2.GaussianBlur(img, (kernel_size, kernel_size), 0)
- #img=image
- # Convert to HLS color space and separate the  channel
- hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS).astype(np.float)
+Later, I added in Sobel filtering in both x & y directions, that seemed to get rid of the noise and my right line detection was much more reasonable, especially at the top of the image. The left line detection was stable throughout because there was a solid yellow line which was picked up just as well with or without applying the additional filtering in the Y direction.
+
+```
+	
+ 	# Define sobel kernel size
+    ksize = 7
+    # Apply each of the thresholding functions
+    gradx = abs_sobel_thresh(gray, orient='x', sobel_kernel=ksize, thresh=(10, 255))
+    grady = abs_sobel_thresh(gray, orient='y', sobel_kernel=ksize, thresh=(60, 255))
+    mag_binary = mag_thresh(gray, sobel_kernel=ksize, mag_thresh=(40, 255))
+    dir_binary = dir_threshold(gray, sobel_kernel=ksize, thresh=(.65, 1.05))
+    # Combine all the thresholding information
+    combined = np.zeros_like(dir_binary)
+    combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))] = 1
+    # Threshold color channel
+    s_binary = np.zeros_like(combined)
+    s_binary[(s > 160) & (s < 255)] = 1
+    # Stack each channel to view their individual contributions in green and blue respectively
+    # This returns a stack of the two binary images, whose components you can see as different colors    
+    color_binary = np.zeros_like(combined)
+    color_binary[(s_binary > 0) | (combined > 0)] = 1
+
     
-l_channel = hls[:,:,1]
-s_channel = hls[:,:,2]
-# Sobel x
-sobelx = cv2.Sobel(s_channel, cv2.CV_64F, 1, 0) # Take the derivative in x
-abs_sobelx = np.absolute(sobelx) # Absolute x derivative to accentuate lines away from horizontal
-scaled_sobel = np.uint8(255*abs_sobelx/np.max(abs_sobelx))
-    
-# Threshold x gradient
-sxbinary = np.zeros_like(scaled_sobel)
-sxbinary[(scaled_sobel >= sx_thresh[0]) & (scaled_sobel <= sx_thresh[1])] = 1
-    
-# Threshold color channel
-s_binary = np.zeros_like(s_channel)
-s_binary[(s_channel >= s_thresh[0]) & (s_channel <= s_thresh[1])] = 1
-    
-s_final=np.zeros_like(s_channel)
-s_final[(sxbinary==1) & (s_binary ==1)] = 1
 ```
 ![S-channel](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/HLS.png)
 
 ![Sobel binary threshold](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/Sobel_Binary.png)
+
+### SOBEL FLTER IN X DIRECTION ONLY
+![Before](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/Before_Sobel_Adjustment.png)
+
+### SOBEL FLTER IN X & Y  DIRECTION ONLY
+![After](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/After_Sobel_Adjustment.png)
 
 Then I used these points to perform Distortion Correction using the Camera matrix calculated earlier
 ```
@@ -166,7 +191,7 @@ Finally, this same pipeline was run on the sample project video, processing each
 
 ![Original video](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/project_video.mp4)
 
-![Processed video](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/white_bu.mp4)
+![Processed video](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/project_out.mp4)
 
 ### 6. Discussion Points
 As can be seen in the resultant video, there is some fluctuation in the shaded region processing due to noise moving from frame to frame especially on the right hand side lane. The left hand side lane with the yellow color is reasonably stable In some frames where there is a transition from yellow to white noise specs, the video shaded region seems to fluctuate. This means under different weather conditions/ shadows, this algorithm may have a tough time keeping track. Also, on roads with poorly marked lane lines or no lane lines, the algorithm would do a poor job keeping to the lane lines.
