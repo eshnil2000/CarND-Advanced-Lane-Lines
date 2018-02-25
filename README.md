@@ -139,7 +139,7 @@ def cal_undistort(img, objpoints, imgpoints):
     undist=dst
     return undist, mtx, dist
 ```
-![Before Distortion Correction](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/original_chess.png)
+![Before Distortion Correction](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/undistorted.png)
 
 
 ### 4. Perform Warp transform to get Bird's eye view, perform windowed Polynomial fit
