@@ -17,7 +17,7 @@ I also used Region of Interest & Gaussian Blurring to focus & better detect the 
 
 # Files & Code Quality
 These are  key files: 
-* [Advanced_Lane_Lines.ipynb](./model.ipynb) (script used to setup & execute the pipeline)
+* [Advanced_Lane_Lines_Updated.ipynb](./model.ipynb) (script used to setup & execute the pipeline)
 * [project_out.mp4](./white.mp4) (a video recording of the lane lines detected along with the shaded region between the lane lines)
 * [README](./README.md) (this readme file has the write up for the project!)
 
