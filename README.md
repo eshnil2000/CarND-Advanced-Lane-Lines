@@ -41,15 +41,17 @@ Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/5
 
 #### Submission code is usable and readable
 
-The Advanced_Lane_Lines.ipynb [Advanced_Lane_Lines.ipynb](./Advanced_Lane_Lines.ipynb) file contains the image processing pipeline.
+The Advanced_Lane_Lines.ipynb [Advanced_Lane_Lines_Updated.ipynb](./Advanced_Lane_Lines.ipynb) file contains the image processing pipeline.
 
 ### 1. Computed the camera matrix and distortion coefficients
-First i used the test chessboard images [calibration_wide.ipynb](./calibration_wide) to find Chessboard corners and saved this data for calibration & distortion correction later.
+First i used the test chessboard images [calibration](./camera_cal) to find Chessboard corners and saved this data for calibration & distortion correction later.
 ```
 # Find the chessboard corners
 ret, corners = cv2.findChessboardCorners(gray, (8,6), None)
 
 ```
+![Calibration](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/Cam_Calibration.png)
+
 ### 2. # Select Region of Interest
 Since the lane lines are typically found in a cone section of the center of the image, I then blacked out most of the image except the center cone section (defined by the left,right & apex vertices. This helped cut out a lot of background noise image.
 ```
@@ -189,9 +191,29 @@ In the same step, i overlayed the curvature and position information onto the im
 
 Finally, this same pipeline was run on the sample project video, processing each frame at a time, and then compiling an output video using the MoviePy package.
 
+### The final pipeline was established in 3 stages:
+```
+def pipeline(img):
+```
+```
+# Undistort calibrated image, apply Sobel & Color Filters
+    color_binary,combined,s_binary,blur=pipeline1(img)
+
+# Warp into Bird's Eye view perspective
+    warp, M, Min,src,dst=pipeline2(color_binary)
+    
+# Fit a windowed polynomial to the warped lane lines, compute curvatures and position, compute Polygon path
+    out_img,left_fitx,right_fitx,ploty,left_curveradius,right_curveradius=window_polyfit(warp)
+
+# Warp again into the original perspective with overlaid polygonal path between lane lines
+    result= pipeline3(out_img,left_fitx,right_fitx,ploty,left_curveradius,right_curveradius,img)
+    
+    return result
+```
+
 ![Original video](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/project_video.mp4)
 
-![Processed video](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/project_out.mp4)
+![Processed video](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/final_out.mp4)
 
 ### 6. Discussion Points
 As can be seen in the resultant video, there is some fluctuation in the shaded region processing due to noise moving from frame to frame especially on the right hand side lane. The left hand side lane with the yellow color is reasonably stable In some frames where there is a transition from yellow to white noise specs, the video shaded region seems to fluctuate. This means under different weather conditions/ shadows, this algorithm may have a tough time keeping track. Also, on roads with poorly marked lane lines or no lane lines, the algorithm would do a poor job keeping to the lane lines.
