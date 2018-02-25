@@ -86,7 +86,7 @@ Initially, my right lane curvature was out of whack, curving dramatically to the
     s_final=np.zeros_like(s_channel)
     s_final[(sxbinary==1) & (s_binary ==1)] = 1
 ```
-Later, I added in Sobel filtering in both x & y directions, that seemed to get rid of the noise and my right line detection was much more reasonable, especially at the top of the image. The left line detection was stable throughout because there was a solid yellow line which was picked up just as well with or without applying the additional filtering in the Y direction.
+Later, I added in Sobel filtering in both x & y directions, and also added in Directional thresholding as well as magnitude thresholding that seemed to get rid of the noise and my right line detection was much more reasonable, especially at the top of the image. The left line detection was stable throughout because there was a solid yellow line which was picked up just as well with or without applying the additional filtering in the Y direction.
 
 ```
 	
