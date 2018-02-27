@@ -146,32 +146,39 @@ def cal_undistort(img, objpoints, imgpoints):
 To get accurate representation of the lane line perspective, i warped the original image, by selecting 4 points on the original image representing roughly the 4 corners of the lane and transforming them so that the lane lines appear parallel to each other in the Bird's eye view
 
 ```
-height,width = result.shape[:2]
+# define source and destination points for transform
+    src = np.float32([(690,450),(595,450),
+                          (1050,680),
+                          (280,680), 
+                          ])
+    dst = np.float32([(1000,0),
+                          (200,0),
+                          (1000,720),
+                          (200,720)])
 
-    # define source and destination points for transform
-    src = np.float32([(750,450),(550,450),
-
-                      (1050,710),
-                      (80,710), 
-                      ])
-    dst = np.float32([(width-450,0),
-                      (450,0),
-                      (width-450,height),
-                      (450,height)])
-
-    result, M, Minv=warp_transform(result,src,dst)
+    warp, M, Minv=warp_transform(undist,src,dst)
 ```
+
+The key factor to a successful warp transform was to ensure the lane lines were mapped to almost perfectly parallel lines in the Bird's eye view, by ensuring the warp Source image consisted of a straight road with parallel lines. 
+
+![Original image](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/warp_check.png)
 
 Since the lane lines maybe discontinuous, I used a windowed polynomial fitting algorithm to trace out the complete left and right lane lines. This code was taken from the sample provided by Udacity. The technique involves dividing up the image into vertical windows, computing the histogram to find lane lines in the window, computing the histogram in subsequent windows and then fitting a polynomial smoothed out to fit the windows together.
 ```
 result,left_fitx,right_fitx,ploty,left_curveradius,right_curveradius=window_polyfit(result)
 
 ```
+![Original image](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/windowed_poly.png)
 
-![Original image](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/warp_check.png)
+ 
 
 
-In this same step, I calculate the approximate lane curvature radius and the position of the car assuming camera is mounted at center of the car. 
+In this same step, I calculate the approximate lane curvature radius and the position of the car assuming camera is mounted at center of the car.  
+TO calculate the curvature and position, I used the following conversions in the warped Bird's Eye View image to convert from pixels to meters:
+```
+ym_per_pix = 30/720 # meters per pixel in y dimension
+xm_per_pix = 3.7/520 # meters per pixel in x dimension
+```
 
 ### 5. Shade region between lane lines, warp image using inverse perspective transform
 Now that the lane lines are detected, I filled in the area between the lane lines with the cv2.fillPoly command. Next, i performed an inverse perspective transform to warp the co-ordinates of the fillPoly to that of the original image, and then superimposed this fill on the original image
