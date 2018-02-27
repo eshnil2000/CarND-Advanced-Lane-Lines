@@ -168,7 +168,7 @@ result,left_fitx,right_fitx,ploty,left_curveradius,right_curveradius=window_poly
 
 ```
 
-![Original image](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/pre_pipeline.png)
+![Original image](https://raw.githubusercontent.com/eshnil2000/CarND-Advanced-Lane-Lines/master/result_images/warp_check.png)
 
 
 In this same step, I calculate the approximate lane curvature radius and the position of the car assuming camera is mounted at center of the car. 
